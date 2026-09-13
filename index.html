@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Probability Detective</title>
+<style>
+:root{font-family:system-ui,sans-serif;color:#172033;background:#f6f8fb;line-height:1.45}*{box-sizing:border-box}
+body{margin:0}header{background:#172033;color:#fff;padding:28px 20px}.wrap{max-width:1100px;margin:auto;padding:20px}
+.card{background:#fff;border:1px solid #ccd3df;border-radius:16px;padding:20px;margin:14px 0}
+nav,.controls,.choices{display:flex;gap:10px;flex-wrap:wrap}button,input,select{font:inherit}
+button{min-height:48px;padding:10px 15px;border:2px solid #172033;border-radius:10px;background:#fff;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #e39a00;outline-offset:2px}.primary{background:#172033;color:#fff}
+.choice[aria-pressed=true]{background:#dce8ff}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+label{font-weight:700;display:grid;gap:5px}.feedback{padding:12px;border-left:5px solid #172033;background:#eef2f7;margin-top:12px}
+.good{border-left-color:#176b42;background:#e8f6ee}.hint{border-left-color:#9a6200;background:#fff6df}
+.stat{font-size:1.5rem;font-weight:800}table{border-collapse:collapse;width:100%;margin-top:12px}th,td{border:1px solid #aeb7c5;padding:7px;text-align:center}th{background:#eef2f7}
+.chart{display:flex;align-items:end;gap:4px;height:220px;padding:10px;border-left:2px solid #172033;border-bottom:2px solid #172033}
+.bar{flex:1;min-width:5px;background:#6c83b5;position:relative}.bar span{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-size:.72rem}
+.hidden{display:none}.small{font-size:.9rem;color:#465267}@media(max-width:700px){.grid{grid-template-columns:1fr}.wrap{padding:14px}.card{padding:15px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style></head><body>
+<header><div class="wrap"><strong>AGES ABOUT 12+</strong><h1>Probability Detective</h1><p>Predict → experiment → explain.</p></div></header>
+<main class="wrap"><section class="card"><h2>Mission briefing</h2><p>Probability gives a theoretical expectation. An experiment gives observed frequency. A finite experiment can vary.</p><p class="small">No login, tracking or personal information is collected. Progress is stored only in this browser.</p></section>
+<nav aria-label="Lesson activities"><button class="primary" data-go="coin">1. Coin lab</button><button data-go="dice">2. Dice investigation</button><button data-go="game">3. Fair-game designer</button><button data-go="summary">Completion summary</button></nav>
+
+<section id="coin" class="card activity"><h2>1. Coin laboratory</h2>
+<p><strong>Predict first:</strong> If P(heads)=0.50, what proportion do you expect after many trials?</p>
+<div class="choices" id="pred"><button class="choice" data-v="near" aria-pressed="false">Around one half</button><button class="choice" data-v="exact" aria-pressed="false">Exactly one half every time</button><button class="choice" data-v="other" aria-pressed="false">Something else</button></div>
+<div class="controls"><label>Heads probability <input id="p" type="number" min="0" max="1" step=".05" value=".5"></label><label>Trials <select id="n"><option>10</option><option>100</option><option>1000</option></select></label><button class="primary" id="run">Run experiment</button><button id="rc">Reset</button><button id="hc">Hint</button></div>
+<div id="cf" class="feedback" aria-live="polite">Choose a prediction, then run the experiment.</div><div class="grid"><div><p>Heads</p><div class="stat" id="heads">—</div></div><div><p>Observed proportion</p><div class="stat" id="prop">—</div></div></div>
+<table aria-label="Coin experiment data"><thead><tr><th>Outcome</th><th>Count</th><th>Proportion</th></tr></thead><tbody id="ct"></tbody></table></section>
+
+<section id="dice" class="card activity hidden"><h2>2. Dice investigation</h2><p>Compare fair die faces with the sums of two fair dice.</p>
+<div class="controls"><label>Experiment <select id="dm"><option value="faces">One die: faces 1–6</option><option value="sums">Two dice: sums 2–12</option></select></label><label>Trials <select id="dn"><option>60</option><option>600</option></select></label><button class="primary" id="rd">Roll</button><button id="hd">Hint</button><button id="xd">Reset</button></div>
+<div id="df" class="feedback" aria-live="polite">Run the experiment and compare observed frequency with theory.</div><div class="chart" id="chart" role="img" aria-label="Dice frequency chart"></div>
+<table aria-label="Dice experiment data"><thead><tr><th>Outcome</th><th>Count</th><th>Observed</th><th>Theoretical</th></tr></thead><tbody id="dt"></tbody></table></section>
+
+<section id="game" class="card activity hidden"><h2>3. Fair-game designer</h2><p>A fair two-side game gives both sides the same expected points per round.</p>
+<div class="grid"><label>Side A points <input id="ap" type="number" value="3"></label><label>Side B points <input id="bp" type="number" value="3"></label><label>P(A) <input id="aq" type="number" min="0" max="1" step=".05" value=".5"></label><label>P(B) <input id="bq" type="number" min="0" max="1" step=".05" value=".5"></label></div>
+<div class="controls"><button class="primary" id="cg">Check fairness</button><button id="hg">Hint</button><button id="xg">Reset</button></div><div id="gf" class="feedback" aria-live="polite"></div>
+<table aria-label="Fair game arithmetic"><thead><tr><th>Side</th><th>Probability</th><th>Points</th><th>Expected points</th></tr></thead><tbody id="gt"></tbody></table></section>
+
+<section id="summary" class="card activity hidden"><h2>Case closed</h2><p id="sum">Complete all three investigations.</p><div class="feedback"><strong>Next practice:</strong> repeat a probability experiment at two sample sizes and explain one surprising result.</div><button id="allreset">Reset lesson</button></section>
+</main>
+<script>
+const S={coin:false,dice:false,game:false,pred:null};const $=x=>document.getElementById(x);
+function show(x){document.querySelectorAll(".activity").forEach(e=>e.classList.add("hidden"));$(x).classList.remove("hidden");$(x).scrollIntoView({behavior:"smooth"});if(x==="summary")summary()}
+document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>show(b.dataset.go));
+document.querySelectorAll("#pred button").forEach(b=>b.onclick=()=>{S.pred=b.dataset.v;document.querySelectorAll("#pred button").forEach(x=>x.setAttribute("aria-pressed",x===b))});
+$("run").onclick=()=>{let p=Math.max(0,Math.min(1,Number($("p").value)||0)),n=Number($("n").value),h=0;for(let i=0;i<n;i++)if(Math.random()<p)h++;let r=h/n;$("heads").textContent=h;$("prop").textContent=r.toFixed(3);$("ct").innerHTML=`<tr><td>Heads</td><td>${h}</td><td>${r.toFixed(3)}</td></tr><tr><td>Tails</td><td>${n-h}</td><td>${(1-r).toFixed(3)}</td></tr>`;let m=S.pred==="exact"?"A finite run is not guaranteed to be exactly half.":S.pred==="near"?"Good: 0.50 is the theoretical value, while the observed result can vary.":"Compare your observed proportion with the configured theoretical probability."; $("cf").className="feedback good";$("cf").textContent=m;S.coin=true;save()};
+$("hc").onclick=()=>{$("cf").className="feedback hint";$("cf").textContent="Hint: theoretical probability is the model before the experiment; observed frequency is what the trials produced."};
+$("rc").onclick=()=>{$("heads").textContent=$("prop").textContent="—";$("ct").innerHTML="";$("cf").className="feedback";$("cf").textContent="Choose a prediction, then run the experiment."};
+$("rd").onclick=()=>{let mode=$("dm").value,n=Number($("dn").value),vals=mode==="faces"?[1,2,3,4,5,6]:Array.from({length:11},(_,i)=>i+2),c=Object.fromEntries(vals.map(v=>[v,0]));for(let i=0;i<n;i++){let a=1+Math.floor(Math.random()*6),b=mode==="faces"?0:1+Math.floor(Math.random()*6);c[a+b]++}let max=Math.max(...Object.values(c));$("chart").innerHTML=vals.map(v=>`<div class="bar" style="height:${Math.max(2,c[v]/max*85)}%"><span>${c[v]}</span></div>`).join("");$("dt").innerHTML=vals.map(v=>{let t=mode==="faces"?1/6:([1,2,3,4,5,6,5,4,3,2,1][v-2]/36);return `<tr><td>${v}</td><td>${c[v]}</td><td>${(c[v]/n).toFixed(3)}</td><td>${t.toFixed(3)}</td></tr>`}).join("");$("df").className="feedback good";$("df").textContent=mode==="sums"?"Seven is most likely because more dice pairs produce it; sums are not equally likely.":"A fair die gives each face the same theoretical chance, but observed counts can differ.";S.dice=true;save()};
+$("hd").onclick=()=>{$("df").className="feedback hint";$("df").textContent="Hint: count how many ordered pairs of dice make each sum. Seven has more combinations than two."};$("xd").onclick=()=>{$("chart").innerHTML=$("dt").innerHTML="";$("df").className="feedback";$("df").textContent="Run the experiment and compare observed frequency with theory."};
+$("cg").onclick=()=>{let a=Number($("aq").value)*Number($("ap").value),b=Number($("bq").value)*Number($("bp").value);$("gt").innerHTML=`<tr><td>A</td><td>${Number($("aq").value).toFixed(2)}</td><td>${$("ap").value}</td><td>${a.toFixed(2)}</td></tr><tr><td>B</td><td>${Number($("bq").value).toFixed(2)}</td><td>${$("bp").value}</td><td>${b.toFixed(2)}</td></tr>`;let fair=Math.abs(a-b)<1e-9;$("gf").className="feedback "+(fair?"good":"");$("gf").textContent=fair?"Fair by this expected-points model: equal expected points.":"Not fair by this model: the expected points differ.";S.game=true;save()};
+$("hg").onclick=()=>{$("gf").className="feedback hint";$("gf").textContent="Hint: expected points = probability × points. Compare both expected values."};$("xg").onclick=()=>{$("gt").innerHTML="";$("gf").textContent=""};
+function save(){localStorage.setItem("pd",JSON.stringify(S))}function summary(){let n=[S.coin,S.dice,S.game].filter(Boolean).length;$("sum").textContent=n===3?"You completed all three investigations: theory vs observed frequency, dice outcomes, and fairness by expected points.":"Completed "+n+" of 3 investigations."}$("allreset").onclick=()=>{localStorage.removeItem("pd");location.reload()};
+</script></body></html>
